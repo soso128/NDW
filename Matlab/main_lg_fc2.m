@@ -26,7 +26,7 @@ hcb=colorbar;
 hcb.Label.String = 'Travel Time [min]';
 
 lg_print('Traject travel time', 15, 10);
-%% 2D histogram
+%% Histogram Calulations
 clf
 nBins = 15;
 windowWidth = 15;
@@ -34,9 +34,18 @@ nTimeWindows = floor(numel(time)/windowWidth);
 N = zeros(nBins,nTimeWindows);
 % create edges
 [~,edges] = histcounts(D(:,:),nBins);
+% filter working days
+daysToInclude = mod(weekday(dayOfMonth),6)>1;
+
+meanTravelTime = zeros(nTimeWindows,1);
+stdTravelTime = zeros(nTimeWindows,1);
 
 for j = 1:nTimeWindows
-    N(:,j) = histcounts(D((1:windowWidth) + (j-1)*windowWidth,:), edges);
+    Dx = D((1:windowWidth) + (j-1)*windowWidth,daysToInclude);
+    
+    N(:,j) = histcounts(Dx, edges);
+    meanTravelTime(j) = mean(Dx(:));
+    stdTravelTime(j) = std(Dx(:));
 end
 %% image the histogram
 clf
@@ -45,20 +54,13 @@ h = imagesc(1:nTimeWindows, y/60000, 100*(N./sum(N)));
 h.Parent.YDir='normal';
 h.Parent.XTick = 1:nTimeWindows;
 h.Parent.XTickLabel = datestr(time(1:windowWidth:end), 'hh:MM');
-xlabel 'Travel time [min]';
-title 'Distribution of travel times'
+ylabel 'Travel time [min]';
+xlabel 'Time of the day';
+title 'Distribution of travel times for weekdays'
 hcb = colorbar;
 hcb.Label.String = 'Frequency [%]';
 %% overlap sigma / mean
 hold on;
-meanTravelTime = zeros(nTimeWindows,1);
-stdTravelTime = zeros(nTimeWindows,1);
-
-for j = 1:nTimeWindows
-    Dx = D((1:windowWidth) + (j-1)*windowWidth,:);
-    meanTravelTime(j) = mean(Dx(:));
-    stdTravelTime(j) = std(Dx(:));
-end
 hm = plot(meanTravelTime/60000,'r');
 [hm.LineWidth]=deal(2);
 hs = plot((meanTravelTime+2*stdTravelTime)/60000,'g');
