@@ -45,7 +45,8 @@ classdef TrajectObj < handle
             this.TTDistribution = zeros(this.nBins,this.nTimeWindows);
             this.meanTT = zeros(this.nTimeWindows,1);
             this.stdTT = zeros(this.nTimeWindows,1);
-            
+            this.pctTT = zeros(this.nTimeWindows,1);
+
             for j = 1:this.nTimeWindows
                 DataW = this.getData(j);
                 
