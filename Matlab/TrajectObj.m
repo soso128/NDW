@@ -5,6 +5,8 @@ classdef TrajectObj < handle
         nBins = 15;
         windowWidth = 15;
         daysToInclude
+        pct = 95
+        
         
         % set after loadData()
         Data
@@ -17,6 +19,7 @@ classdef TrajectObj < handle
         TTDistribution
         meanTT
         stdTT
+        pctTT
         
         % misc
         dayName = {'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'};
@@ -25,8 +28,8 @@ classdef TrajectObj < handle
     
     methods
         
-        function loadData(this)
-            this.Data = importTrajectFCData('/Volumes/HDD/Users/lvdgraaff/Dropbox/Physics with NDW/FCD_fulltrajectory/tableFCDalldays.csv');
+        function loadData(this, fileName)
+            this.Data = importTrajectFCData(fileName);
             this.Data = this.Data';
             
             this.timeOfDay = hours(6)+hours((0:size(this.Data,1)-1)/60); % time in hours
@@ -44,12 +47,17 @@ classdef TrajectObj < handle
             this.stdTT = zeros(this.nTimeWindows,1);
             
             for j = 1:this.nTimeWindows
-                Dx = this.Data((1:this.windowWidth) + (j-1)*this.windowWidth,this.daysToInclude);
+                DataW = this.getData(j);
                 
-                this.TTDistribution(:,j) = histcounts(Dx, this.edges);
-                this.meanTT(j) = mean(Dx(:));
-                this.stdTT(j) = std(Dx(:));
+                this.TTDistribution(:,j) = histcounts(DataW, this.edges);
+                this.meanTT(j) = mean(DataW(:));
+                this.stdTT(j) = std(DataW(:));
+                this.pctTT(j) = prctile(DataW(:),this.pct);
             end
+        end
+        
+        function DataW = getData(this, j)
+            DataW = this.Data((1:this.windowWidth) + (j-1)*this.windowWidth,this.daysToInclude);
         end
         
         function image(this)
@@ -69,9 +77,18 @@ classdef TrajectObj < handle
         function plot(this)
             hm = plot(this.meanTT/60000,'r');
             [hm.LineWidth]=deal(2);
+            hm.DisplayName = '\mu';
             hs = plot((this.meanTT+2*this.stdTT)/60000,'g');
             [hs.LineWidth]=deal(2);
-            legend([hm,hs], '\mu', '\mu+2\cdot\sigma','Location','NorthWest');
+            hs.DisplayName = '\mu+2\cdot\sigma';
+            legend('-DynamicLegend','Location','NorthWest');
+        end
+        
+        function plotP(this)
+            hp = plot(this.pctTT/60000,'w');
+            [hp.LineWidth]=deal(2);
+            hp.DisplayName = sprintf('%d%% pct',this.pct);
+            legend('-DynamicLegend','Location','NorthWest');
         end
     end
 end
