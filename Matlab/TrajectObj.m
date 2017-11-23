@@ -85,10 +85,10 @@ classdef TrajectObj < handle
             legend('-DynamicLegend','Location','NorthWest');
         end
         
-        function plotP(this)
+        function hp = plotP(this)
             hp = plot(this.pctTT/60000,'w');
             [hp.LineWidth]=deal(2);
-            hp.DisplayName = sprintf('%d%% pct',this.pct);
+            hp.DisplayName = sprintf('%.0f%% pct',this.pct);
             legend('-DynamicLegend','Location','NorthWest');
         end
     end
